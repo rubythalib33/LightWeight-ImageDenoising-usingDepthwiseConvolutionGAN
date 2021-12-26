@@ -15,13 +15,13 @@ torch.backends.cudnn.benchmark = True
 def train_fn(loader, disc, gen, opt_gen, opt_disc, mse, bce, vgg_loss):
     loop = tqdm(loader, leave=True)
 
-    for idx, (low_res, high_res) in enumerate(loop):
-        high_res = high_res.to(config.DEVICE)
-        low_res = low_res.to(config.DEVICE)
+    for idx, (input_imgs, target_imgs) in enumerate(loop):
+        target_imgs = target_imgs.to(config.DEVICE)
+        input_imgs = input_imgs.to(config.DEVICE)
         
         ### Train Discriminator: max log(D(x)) + log(1 - D(G(z)))
-        fake = gen(low_res)
-        disc_real = disc(high_res)
+        fake = gen(input_imgs)
+        disc_real = disc(target_imgs)
         disc_fake = disc(fake.detach())
         disc_loss_real = bce(
             disc_real, torch.ones_like(disc_real) - 0.1 * torch.rand_like(disc_real)
@@ -37,24 +37,24 @@ def train_fn(loader, disc, gen, opt_gen, opt_disc, mse, bce, vgg_loss):
 
         # Train Generator: min log(1 - D(G(z))) <-> max log(D(G(z))
         disc_fake = disc(fake)
-        l2_loss = mse(fake, high_res)
+        l2_loss = mse(fake, target_imgs)
         adversarial_loss = bce(disc_fake, torch.ones_like(disc_fake))
-        loss_for_vgg = vgg_loss(fake, high_res)
+        loss_for_vgg = vgg_loss(fake, target_imgs)
         # gen_loss = loss_for_vgg + adversarial_loss + l2_loss
-        gen_loss = 6e-2 * loss_for_vgg + 1e-2 * adversarial_loss + 0.92*l2_loss
+        gen_loss = 4e-1 * loss_for_vgg + 2e-1 * adversarial_loss + 0.4*l2_loss
         # print(f'Generative loss:{gen_loss}')
 
         opt_gen.zero_grad()
         gen_loss.backward()
         opt_gen.step()
 
-        if idx % 200 == 0:
-            plot_examples("Datasets/DIV2K_valid_LR_bicubic/X4/", gen)
+        if idx % 199 == 0 and idx != 0:
+            plot_examples(config.DATA_TEST, gen)
             print(f'discrimantor loss:{loss_disc}')
             print(f'Generative loss:{gen_loss}')
 
 def main():
-    dataset = MyImageFolder(root_dir="Datasets/train_DIV2K/")
+    dataset = MyImageFolder(root_dir=config.DATA_TRAIN)
     loader = DataLoader(
         dataset,
         batch_size=config.BATCH_SIZE,

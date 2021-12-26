@@ -6,6 +6,8 @@ from utils import SaltPapper
 
 #First Train using all loss func until Epoch 176
 
+DATA_TRAIN = '../Datasets/DIV2K/train_DIV2K/'
+DATA_TEST = 'noise_image/'
 LOAD_MODEL = False
 SAVE_MODEL = True
 CHECKPOINT_GEN = "gen.pth.tar"
@@ -13,10 +15,10 @@ CHECKPOINT_DISC = "disc.pth.tar"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE = 1e-4
 START_EPOCHS = 1
-NUM_EPOCHS = 500
+NUM_EPOCHS = 200
 BATCH_SIZE = 4
 NUM_WORKERS = 4
-IMAGE_SHAPE = 224
+IMAGE_SHAPE = 128
 IMG_CHANNELS = 3
 
 target_transform = A.Compose(
@@ -28,7 +30,7 @@ target_transform = A.Compose(
 
 input_transform = A.Compose(
     [
-        SaltPapper(low_n_frame=3750, high_n_frame=12500),
+        SaltPapper(low_n_frame=0.01, high_n_frame=0.1),
         A.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ToTensorV2(),
     ]

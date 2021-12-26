@@ -25,18 +25,18 @@ class MyImageFolder(Dataset):
 
         image = np.array(Image.open(os.path.join(root_and_dir, img_file)))
         image = config.both_transforms(image=image)["image"]
-        high_res = config.highres_transform(image=image)["image"]
-        low_res = config.lowres_transform(image=image)["image"]
-        return low_res, high_res
+        target_imgs = config.target_transform(image=image)["image"]
+        input_imgs = config.input_transform(image=image)["image"]
+        return input_imgs, target_imgs
 
 
 def test():
-    dataset = MyImageFolder(root_dir="Datasets/train_val_images/")
+    dataset = MyImageFolder(root_dir=config.DATA_TRAIN)
     loader = DataLoader(dataset, batch_size=1, num_workers=8)
 
-    for low_res, high_res in loader:
-        print(low_res.shape)
-        print(high_res.shape)
+    for input_imgs, target_imgs in loader:
+        print(input_imgs.shape)
+        print(target_imgs.shape)
 
 
 if __name__ == "__main__":
